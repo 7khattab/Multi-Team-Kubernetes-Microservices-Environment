@@ -1,0 +1,54 @@
+name: CI/CD for Team B
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'team-b/**'
+      - '.github/workflows/team-b-ci-cd.yaml'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./team-b
+          file: ./team-b/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/team-b-app:latest
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: <YOUR_AWS_REGION> # e.g., us-east-1
+
+      - name: Set up kubectl for EKS
+        run: |
+          aws eks update-kubeconfig --name <YOUR_EKS_CLUSTER_NAME> --region <YOUR_AWS_REGION>
+
+      - name: Deploy to Kubernetes
+        run: |
+          # Kubeconfig is now managed by 'aws eks update-kubeconfig'
+          kubectl apply -f kubernetes-config/namespaces/team-b-namespace.yaml
+          kubectl apply -f kubernetes-config/rbac/team-b-role.yaml
+          kubectl apply -f kubernetes-config/rbac/team-b-rolebinding.yaml
+          kubectl apply -f kubernetes-config/resource-quotas/team-b-quota.yaml
+          kubectl apply -f kubernetes-config/network-policies/team-b-network-policy.yaml
+          kubectl apply -f team-b/k8s/deployment.yaml
+          kubectl apply -f team-b/k8s/service.yaml 

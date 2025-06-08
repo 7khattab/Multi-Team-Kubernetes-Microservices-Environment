@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: team-a-app
+  namespace: team-a
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: team-a-app
+  template:
+    metadata:
+      labels:
+        app: team-a-app
+    spec:
+      containers:
+        - name: app
+          image: your-dockerhub-username/team-a-app:latest
+          ports:
+            - containerPort: 5000
+      imagePullSecrets:
+        - name: regcred 
