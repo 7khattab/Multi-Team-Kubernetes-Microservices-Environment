@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: ${{ secrets.DOCKERHUB_USERNAME }}/privatemultiuser:team-b-app
+          image: mkhattab77/privatemultiuser:team-b-app
           ports:
             - containerPort: 5000
       imagePullSecrets:
