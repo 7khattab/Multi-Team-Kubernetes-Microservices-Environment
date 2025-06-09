@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: your-dockerhub-username/team-b-app:latest
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/privatemultiuser:team-b-app
           ports:
             - containerPort: 5000
       imagePullSecrets:
